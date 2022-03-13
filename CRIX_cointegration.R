@@ -10,6 +10,12 @@ par(mfrow=c(2,1))
 plot(log(GLD))
 plot(log(SP500))
 
+library(fUnitRoots)
+library(tseries)
+library(vars)
+library(MTS)
+logprice<-log(rbind(GLD,SP500))
+
 #stationary?
 adfTest(diff(log(SP500)),lags=12)
 adfTest(diff(log(GLD)),lags=12)
@@ -42,12 +48,18 @@ kpss.test(as.vector(longrun))
 # VECM(3)#
 ##########
 
+logprice<-as.data.frame(t(logprice))
 end<-ncol(logprice)
-dlogprice<-logprice[,2:end]-logprice[,1:(end-1)]#Delta_X_t
+dlogprice<-logprice[,2:end]-logprice[,1:(end-1)]
 End<-ncol(dlogprice)
 #constant
 VARselect(as.data.frame(logprice),lag.max=10,type=c("none"))  #AIC:p=2
 ?VAR
+
+logprice<-log(rbind(GLD,SP500))
+end<-ncol(logprice)
+dlogprice<-logprice[,2:end]-logprice[,1:(end-1)]
+#Delta_X_t, End<-ncol(dlogprice)
 
 Z_0t<-dlogprice
 Z_1t<-logprice[,-end]
@@ -81,7 +93,6 @@ E$values
 beta=matrix(E$vectors[,1],2,1)
 # 0.99853896 0.05403653
 ##2019.0717  ECMvar()
-logprice<-as.data.frame(t(logprice)) 
 
 n3<-ECMvar(logprice,4,ibeta = beta,include.const = FALSE)
 n3a<-refECMvar(n3,thres=0.5)
@@ -103,6 +114,7 @@ dev.off()
 #################
 
 logprice<-log(rbind(GLD,SP500))
+logprice<-as.data.frame(t(logprice))
 model2<-ca.jo(logprice, ecdet = "none", type="eigen", K=4,spec="longrun")
 summary(model2)
 
